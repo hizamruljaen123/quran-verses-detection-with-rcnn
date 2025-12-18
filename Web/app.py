@@ -665,9 +665,6 @@ def load_model_if_exists():
     from tensorflow import keras
     model_dirs = [
         '../model_saves_quran_model_final',
-        'models', 
-        '../model_saves_basic_improved', 
-        '../model_saves_improved_simple'
     ]
     for model_dir in model_dirs:
         print(f"\U0001F4C1 Checking directory: {model_dir}")
