@@ -788,11 +788,13 @@ def predict_verse(audio_file_path):
         # Build result
         result = {
             'verse_number': int(verse_number),
+            'verse_id': int(verse_number),
             'confidence': float(confidence),
             'verse_name': get_verse_name(verse_number),
             'top3_predictions': [
                 {
                     'verse_number': int(v),
+                    'verse_id': int(v),
                     'verse_name': get_verse_name(v),
                     'probability': float(p)
                 }
@@ -813,6 +815,7 @@ def predict_verse(audio_file_path):
         return {
             'error': str(e),
             'verse_number': None,
+            'verse_id': None,
             'confidence': 0.0,
             'prediction_id': prediction_count,
             'status': 'failed'
