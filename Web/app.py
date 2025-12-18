@@ -663,44 +663,63 @@ def load_model_if_exists():
     import os
     import pickle
     from tensorflow import keras
-    model_dirs = [
-        '../model_saves_quran_model_final',
-    ]
-    for model_dir in model_dirs:
-        print(f"\U0001F4C1 Checking directory: {model_dir}")
-        if not os.path.exists(model_dir):
-            continue
-        try:
-            model_path = os.path.join(model_dir, 'quran_model.h5')
-            encoder_path = os.path.join(model_dir, 'label_encoder.pkl')
-            metadata_path = os.path.join(model_dir, 'metadata.json')
-            if os.path.exists(model_path):
-                print(f"\U0001F4E5 Loading model from: {model_path}")
-                try:
-                    loaded_model = keras.models.load_model(model_path)
-                except TypeError as e:
-                    print(f"❌ Failed to load model: {e}")
-                    loaded_model = None
-                    continue
-                except Exception as e:
-                    print(f"❌ Failed to load model: {e}")
-                    loaded_model = None
-                    continue
-                if os.path.exists(encoder_path):
-                    with open(encoder_path, 'rb') as f:
-                        loaded_encoder = pickle.load(f)
-                if os.path.exists(metadata_path):
-                    import json
-                    with open(metadata_path, 'r', encoding='utf-8') as f:
-                        model_metadata = json.load(f)
-                print("✅ Model loaded successfully!")
-                return True
-        except Exception as e:
-            print(f"❌ Failed to load model: {e}")
-            continue
-    print("❌ No valid model found in any directory")
-    loaded_model = None
-    return False
+    
+    # Get the absolute path to the directory containing this script (Web folder)
+    current_script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to project root to find the model folder
+    project_root = os.path.dirname(current_script_dir)
+    
+    # STRICT PATH: Only look in model_saves_quran_model_final
+    model_dir = os.path.join(project_root, 'model_saves_quran_model_final')
+    
+    print(f"\U0001F4C1 Target model directory: {model_dir}")
+    
+    if not os.path.exists(model_dir):
+        print(f"❌ Error: Model directory not found at {model_dir}")
+        loaded_model = None
+        return False
+        
+    try:
+        # Define paths for required files
+        model_path = os.path.join(model_dir, 'best_model.h5')
+        encoder_path = os.path.join(model_dir, 'label_encoder.pkl')
+        metadata_path = os.path.join(model_dir, 'metadata.json')
+        
+        # 1. Load Model (Critical)
+        if os.path.exists(model_path):
+            print(f"\U0001F4E5 Loading model from: {model_path}")
+            try:
+                loaded_model = keras.models.load_model(model_path)
+            except Exception as e:
+                print(f"❌ Failed to load model: {e}")
+                loaded_model = None
+                return False
+        else:
+            print(f"❌ Model file not found: {model_path}")
+            loaded_model = None
+            return False
+
+        # 2. Load Encoder (Required for functionality)
+        if os.path.exists(encoder_path):
+            print(f"\U0001F4E5 Loading encoder from: {encoder_path}")
+            with open(encoder_path, 'rb') as f:
+                loaded_encoder = pickle.load(f)
+        else:
+            print(f"⚠️ Warning: Label encoder not found at {encoder_path}")
+
+        # 3. Load Metadata (Optional but recommended)
+        if os.path.exists(metadata_path):
+            import json
+            with open(metadata_path, 'r', encoding='utf-8') as f:
+                model_metadata = json.load(f)
+                
+        print("✅ Model system loaded successfully!")
+        return True
+
+    except Exception as e:
+        print(f"❌ Unexpected error loading model system: {e}")
+        loaded_model = None
+        return False
 
 def get_verse_name(verse_number):
     """Convert verse number to readable name"""
