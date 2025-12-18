@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-10">
+    <div class="flex items-center">
+        <a href="{{ url_for('main.index') }}"
+            class="group inline-flex items-center px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 font-black text-sm transition-all hover:bg-slate-50 hover:border-primary/20 hover:text-primary shadow-sm hover:translate-x-[-4px]">
+            <i class="bi bi-arrow-left mr-3 text-lg transition-transform group-hover:translate-x-[-2px]"></i>
+            KEMBALI KE DASHBOARD
+        </a>
+    </div>
+
+    <!-- Main Result Card -->
+    <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-emerald-500/5 border border-slate-100 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-primary px-10 py-8 flex items-center justify-between text-white relative overflow-hidden">
+            <div class="flex items-center gap-4 relative z-10 transition-transform group-hover:scale-105">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                    <i class="bi bi-check-all text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-black uppercase tracking-tight">Hasil Analisis Audio</h2>
+            </div>
+            <div
+                class="px-5 py-2 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10 relative z-10">
+                Versi AI 1.0 - verified
+            </div>
+            <!-- Background Decoration -->
+            <div class="absolute inset-0 bg-gradient-to-r from-emerald-600/50 to-transparent"></div>
+        </div>
+
+        <div class="p-10">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+                <!-- Big Verse Number -->
+                <div class="md:col-span-4 flex justify-center">
+                    <div class="relative group">
+                        <div
+                            class="h-48 w-48 rounded-[3rem] bg-emerald-50 text-primary flex flex-col items-center justify-center border-4 border-emerald-100 shadow-inner group-hover:rotate-3 transition-transform duration-500">
+                            <span class="text-7xl font-black drop-shadow-sm">{{ result.verse_id }}</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest mt-2 opacity-50">Ayat</span>
+                        </div>
+                        <!-- Decorative Ring -->
+                        <div class="absolute -inset-4 border-2 border-primary/10 rounded-[3.5rem] animate-pulse"></div>
+                    </div>
+                </div>
+
+                <!-- Metrics & Source -->
+                <div class="md:col-span-8 space-y-8">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-end px-1">
+                            <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Confidence
+                                Score</span>
+                            <span class="text-2xl font-black text-primary">{{ "%.1f"|format(result.confidence * 100)
+                                }}%</span>
+                        </div>
+                        <div
+                            class="w-full h-4 bg-slate-100 rounded-full p-1 border border-slate-200/50 overflow-hidden">
+                            <div class="bg-primary h-full rounded-full transition-all duration-1000 relative group"
+                                style="width: {{ result.confidence * 100 }}%">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-[shimmer_2s_infinite]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div
+                            class="p-5 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-primary/30 transition-colors">
+                            <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">Metode
+                                Deteksi</p>
+                            <div class="flex items-center text-sm font-black text-slate-700">
+                                {% if result.source == 'model' %}
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3">
+                                    <i class="bi bi-cpu text-lg"></i>
+                                </div>
+                                <span>AI Cortex Neural</span>
+                                {% else %}
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mr-3">
+                                    <i class="bi bi-hash text-lg"></i>
+                                </div>
+                                <span>Metadata Fallback</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div
+                            class="p-5 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-primary/30 transition-colors overflow-hidden">
+                            <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">File Sumber
+                            </p>
+                            <div class="flex items-center text-sm font-bold text-slate-600">
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center mr-3 shrink-0">
+                                    <i class="bi bi-file-earmark-music text-lg"></i>
+                                </div>
+                                <span class="truncate">{{ filename }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arabic Content Section -->
+            <div
+                class="mt-16 bg-slate-50/50 rounded-[3rem] p-12 border border-slate-100 text-center relative overflow-hidden group">
+                <div class="absolute -top-10 -right-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i class="bi bi-chat-quote-fill text-[15rem]"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <h2 class="font-arabic text-6xl md:text-7xl text-slate-800 leading-[1.8] mb-12 select-none"
+                        style="direction: rtl;">
+                        {{ db_data.ayahText|safe }}
+                    </h2>
+
+                    <div class="space-y-6">
+                        <div
+                            class="relative inline-block px-12 py-4 bg-white rounded-2xl shadow-sm border border-slate-100 group-hover:scale-105 transition-transform duration-500">
+                            <p class="text-primary text-xl font-bold italic tracking-wide">" {{ db_data.readText }} "
+                            </p>
+                            <div
+                                class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 bg-primary text-white text-[9px] font-black rounded-full uppercase py-1">
+                                Transliterasi</div>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-4">
+                            <div class="h-px w-12 bg-slate-200"></div>
+                            <i class="bi bi-translate text-slate-300"></i>
+                            <div class="h-px w-12 bg-slate-200"></div>
+                        </div>
+
+                        <p
+                            class="text-slate-500 text-xl leading-relaxed max-w-2xl mx-auto font-medium indent-8 text-justify">
+                            {{ db_data.indoText }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 3 Predictions -->
+    {% if result.top3 %}
+    <div
+        class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700">
+        <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+            <h3 class="text-slate-900 font-black flex items-center text-xs uppercase tracking-widest">
+                <i class="bi bi-diagram-3 mr-3 text-primary text-lg"></i> Alternatif Prediksi (Top 3)
+            </h3>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confidence Analysis</span>
+        </div>
+        <div class="divide-y divide-slate-50">
+            {% for item in result.top3 %}
+            <div
+                class="px-8 py-6 flex items-center justify-between transition-all duration-300 hover:bg-slate-50/80 group">
+                <div class="flex items-center">
+                    <div
+                        class="h-12 w-12 bg-slate-100 text-slate-600 font-black rounded-2xl flex items-center justify-center mr-6 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        {{ item.verse }}
+                    </div>
+                    <span class="text-lg font-black text-slate-700">Ayat {{ item.verse }}</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-48 h-2.5 bg-slate-100 rounded-full hidden lg:block overflow-hidden p-0.5 border border-slate-200/50">
+                        <div class="bg-indigo-400/50 h-full rounded-full transition-all duration-1000 delay-300"
+                            style="width: {{ item.prob * 100 }}%"></div>
+                    </div>
+                    <div class="min-w-[80px] text-right">
+                        <span class="text-xl font-black text-slate-400 group-hover:text-primary transition-colors">{{
+                            "%.1f"|format(item.prob * 100) }}%</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%) skewX(-20deg);
+        }
+
+        100% {
+            transform: translateX(200%) skewX(-20deg);
+        }
+    }
+</style>
+{% endblock %}

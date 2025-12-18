@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Header Hero Section -->
+    <div class="lg:col-span-12">
+        <div
+            class="relative overflow-hidden rounded-3xl p-12 text-white shadow-2xl bg-gradient-to-br from-dark to-slate-800">
+            <div class="absolute top-0 right-0 opacity-10 -mr-16 -mt-16 rotate-12 scale-150">
+                <i class="bi bi-mic-fill text-[15rem]"></i>
+            </div>
+
+            <div class="relative z-10 max-w-4xl">
+                <h1 class="text-5xl font-extrabold mb-6 leading-tight">AI Quran Voice Recognizer</h1>
+                <p class="text-slate-400 text-xl mb-8 leading-relaxed">Sistem cerdas berbasis Custom Deep Neural Network
+                    untuk mengenali ayat-ayat Al-Quran dari berbagai rekaman Syekh & Qori secara presisi.</p>
+                <div class="flex flex-wrap gap-4">
+                    <div
+                        class="flex items-center px-5 py-2.5 bg-white/10 rounded-full border border-white/5 backdrop-blur-sm">
+                        <i class="bi bi-check-circle-fill text-primary mr-3"></i>
+                        <span class="text-sm font-bold">Pure NumPy Architecture</span>
+                    </div>
+                    <div
+                        class="flex items-center px-5 py-2.5 bg-white/10 rounded-full border border-white/5 backdrop-blur-sm">
+                        <i class="bi bi-check-circle-fill text-primary mr-3"></i>
+                        <span class="text-sm font-bold">41 Classes Mapped</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="lg:col-span-7">
+        <div class="bg-white rounded-3xl p-10 shadow-xl border border-slate-100 flex flex-col h-full">
+            <h3 class="text-2xl font-black mb-4 text-dark">Analisis Audio Baru</h3>
+            <p class="text-slate-500 mb-10">Unggah file audio MP3 atau WAV berdurasi pendek untuk dideteksi oleh otak
+                buatan kami.</p>
+
+            <form action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data"
+                class="flex-grow flex flex-col">
+                <div class="relative group flex-grow flex flex-col items-center justify-center p-10 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50 hover:bg-slate-100 hover:border-primary/50 transition-all duration-300 cursor-pointer text-center"
+                    id="dropZone">
+                    <input type="file" name="audio_file" id="audio_file" class="hidden" accept=".mp3, .wav">
+
+                    <div class="mb-8 pointer-events-none">
+                        <div
+                            class="w-24 h-24 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <i class="bi bi-cloud-arrow-up text-4xl"></i>
+                        </div>
+                        <h5 class="text-xl font-bold text-dark mb-2">Klik atau seret file audio</h5>
+                        <p class="text-slate-400 text-sm">Mendukung MP3, WAV (Maks 10MB)</p>
+                    </div>
+
+                    <div id="fileInfo"
+                        class="hidden w-full max-w-sm bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="bi bi-file-earmark-music text-2xl text-primary mr-4"></i>
+                                <span class="font-bold text-dark text-sm truncate max-w-[180px]"
+                                    id="fileName">Ready...</span>
+                            </div>
+                            <button type="button" class="text-rose-500 hover:text-rose-600 transition-colors px-2"
+                                id="removeFile">
+                                <i class="bi bi-x-circle text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-4 px-8 bg-primary hover:bg-primary-dark text-white font-black rounded-2xl shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)] hover:translate-y-[-2px] transition-all duration-300 flex items-center justify-center group">
+                        <i
+                            class="bi bi-cpu-fill mr-3 group-hover:rotate-12 transition-transform duration-300 text-xl"></i>
+                        Mulai Deteksi AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar Stats/Info -->
+    <div class="lg:col-span-5 space-y-8">
+        <!-- Model Status Card -->
+        <div class="relative overflow-hidden bg-primary rounded-3xl p-8 text-white shadow-xl shadow-emerald-500/20">
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                    <i class="bi bi-activity text-white text-xl"></i>
+                </div>
+                <h5 class="text-xl font-bold mb-3">Model Status</h5>
+                <p class="text-emerald-100 text-sm leading-relaxed">Cortex Neuron saat ini aktif dan siap menerima data
+                    input suara secara real-time.</p>
+            </div>
+            <div class="absolute -bottom-6 -right-6 opacity-20 rotate-[-15deg]">
+                <i class="bi bi-shield-check text-9xl"></i>
+            </div>
+        </div>
+
+        <!-- Dataset Info Card -->
+        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-4 border-l-primary">
+            <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Dataset Quran</h6>
+            <p class="text-slate-600 text-sm leading-relaxed font-medium">Terlatih pada 41 ayat (0-40) dengan 7 variasi
+                qori per ayat untuk akurasi generalisasi yang optimal.</p>
+        </div>
+
+        <!-- Speed Stats Card -->
+        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                    <i class="bi bi-lightning-charge text-lg"></i>
+                </div>
+                <h6 class="text-lg font-bold text-dark">Fast Inference</h6>
+            </div>
+            <div class="h-2.5 w-full bg-slate-100 rounded-full mb-4 overflow-hidden">
+                <div class="h-full bg-indigo-500 rounded-full" style="width: 100%"></div>
+            </div>
+            <div class="flex justify-between items-center text-xs font-bold text-slate-500">
+                <span>Waktu proses</span>
+                <span class="text-indigo-600">&lt; 500ms per prediksi</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('audio_file');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const removeFile = document.getElementById('removeFile');
+
+    dropZone.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+        if (e.target.files.length > 0) {
+            fileName.innerText = e.target.files[0].name;
+            fileInfo.classList.remove('hidden');
+        }
+    };
+
+    removeFile.onclick = (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+    };
+</script>
+{% endblock %}

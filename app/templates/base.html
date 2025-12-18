@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Recognition AI - QuranVerse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        'primary-dark': '#059669',
+                        secondary: '#6366f1',
+                        dark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        arabic: ['Amiri', 'serif'],
+                    },
+                    borderRadius: {
+                        '2xl': '1rem',
+                        '3xl': '1.5rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body class="font-sans text-dark min-h-screen">
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-0 w-72 h-screen bg-dark text-white z-50 p-8 flex flex-col shadow-2xl">
+        <div class="flex items-center mb-12 px-3">
+            <div class="bg-primary p-2 rounded-2xl mr-4 flex items-center justify-center">
+                <i class="bi bi-cpu text-white text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-xl font-bold tracking-tight leading-none text-white">QuranVerse</h4>
+                <p class="text-slate-400 text-xs mt-1">Deep Recon Engine</p>
+            </div>
+        </div>
+
+        <nav class="space-y-2">
+            <a href="{{ url_for('main.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {% if request.endpoint == 'main.index' %}bg-primary text-white shadow-lg shadow-emerald-500/20{% else %}text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1{% endif %}">
+                <i class="bi bi-house-door text-xl mr-3"></i>
+                <span class="font-semibold">Dashboard</span>
+            </a>
+            <a href="{{ url_for('main.training') }}"
+                class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {% if request.endpoint == 'main.training' %}bg-primary text-white shadow-lg shadow-emerald-500/20{% else %}text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1{% endif %}">
+                <i class="bi bi-cpu text-xl mr-3"></i>
+                <span class="font-semibold">Model Training</span>
+            </a>
+            <a href="{{ url_for('main.evaluate') }}"
+                class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {% if request.endpoint == 'main.evaluate' %}bg-primary text-white shadow-lg shadow-emerald-500/20{% else %}text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1{% endif %}">
+                <i class="bi bi-bar-chart text-xl mr-3"></i>
+                <span class="font-semibold">Evaluation</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <div class="bg-white/5 p-4 rounded-3xl border border-white/10">
+                <p class="text-slate-500 text-xs mb-2">Status Sistem</p>
+                <div class="flex items-center">
+                    <div class="h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse shadow-[0_0_8px_#10b981]"></div>
+                    <span class="text-xs font-bold">Engine: Online</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-72 p-12">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+
+</html>

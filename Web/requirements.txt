@@ -1,8 +1,0 @@
-# Public tunnel dependencies
-pyngrok==7.0.0
-requests==2.31.0
-
-
-# Optional tunnel alternatives (install manually if needed)
-# localtunnel  # Install via npm: npm install -g localtunnel
-# cloudflared  # Download binary from https://github.com/cloudflare/cloudflared/releases
