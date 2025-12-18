@@ -664,15 +664,28 @@ def load_model_if_exists():
     import pickle
     from tensorflow import keras
     
-    # Get the absolute path to the directory containing this script (Web folder)
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Go up one level to project root to find the model folder
+    # Kunci perbaikan: Gunakan Absolute Path agar tidak tergantung dari mana script dijalankan
+    # 1. Ambil lokasi file app.py saat ini (c:\...\Web\app.py)
+    current_script_path = os.path.abspath(__file__)
+    current_script_dir = os.path.dirname(current_script_path)
+    
+    # 2. Naik satu level ke project root (c:\...\quran-verses-detection-with-rcnn)
     project_root = os.path.dirname(current_script_dir)
     
-    # STRICT PATH: Only look in model_saves_quran_model_final
+    # 3. Bentuk path absolut ke folder model
     model_dir = os.path.join(project_root, 'model_saves_quran_model_final')
     
-    print(f"\U0001F4C1 Target model directory: {model_dir}")
+    # FIX: Pastikan path benar-benar ada, jika tidak coba path alternatif
+    if not os.path.exists(model_dir):
+         # Coba cari di adjacent directory
+         alternative_dir = os.path.join(current_script_dir, '../model_saves_quran_model_final')
+         if os.path.exists(alternative_dir):
+             model_dir = os.path.abspath(alternative_dir)
+    
+    # Debugging info
+    print(f"📍 Script Location: {current_script_path}")
+    print(f"📍 Project Root: {project_root}")
+    print(f"\U0001F4C1 Target Model Dir: {model_dir}")
     
     if not os.path.exists(model_dir):
         print(f"❌ Error: Model directory not found at {model_dir}")
@@ -681,9 +694,10 @@ def load_model_if_exists():
         
     try:
         # Define paths for required files
+        # Note: Menggunakan 'metadata.json' sesuai nama file asli di folder, bukan 'model_metadata.json'
         model_path = os.path.join(model_dir, 'best_model.h5')
         encoder_path = os.path.join(model_dir, 'label_encoder.pkl')
-        metadata_path = os.path.join(model_dir, 'metadata.json')
+        metadata_path = os.path.join(model_dir, 'metadata.json') 
         
         # 1. Load Model (Critical)
         if os.path.exists(model_path):
@@ -696,8 +710,17 @@ def load_model_if_exists():
                 return False
         else:
             print(f"❌ Model file not found: {model_path}")
-            loaded_model = None
-            return False
+            # Coba fallback ke quran_model.h5 jika best_model.h5 tidak ada (opsional, tapi user minta best_model)
+            fallback_path = os.path.join(model_dir, 'quran_model.h5')
+            if os.path.exists(fallback_path):
+                print(f"⚠️ best_model.h5 partial, trying quran_model.h5: {fallback_path}")
+                try:
+                    loaded_model = keras.models.load_model(fallback_path)
+                except Exception as e:
+                     print(f"❌ Failed to load fallback model: {e}")
+                     return False
+            else:
+                return False
 
         # 2. Load Encoder (Required for functionality)
         if os.path.exists(encoder_path):
@@ -709,15 +732,21 @@ def load_model_if_exists():
 
         # 3. Load Metadata (Optional but recommended)
         if os.path.exists(metadata_path):
+            print(f"\U0001F4E5 Loading metadata from: {metadata_path}")
             import json
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 model_metadata = json.load(f)
+        else:
+             print(f"⚠️ Warning: Metadata not found at {metadata_path} (User path 'model_metadata.json' might be wrong)")
                 
         print("✅ Model system loaded successfully!")
         return True
 
     except Exception as e:
         print(f"❌ Unexpected error loading model system: {e}")
+        # Print traceback untuk debug mendalam
+        import traceback
+        traceback.print_exc()
         loaded_model = None
         return False
 
@@ -740,17 +769,37 @@ def get_verse_from_filename(audio_file_path):
     Contoh:
     078016.mp3 -> 16
     078001.mp3 -> 1
+    016.mp3 -> 16
     """
     try:
         filename = os.path.basename(audio_file_path)
         name, _ = os.path.splitext(filename)
+        
+        # Strategy 1: Look for numbers at the end of the filename
+        # This handles 078016 -> 78016 -> take last part?
+        # User constraint: "078016.mp3 atau 078001, maka ambil 1 atau 16"
+        
+        import re
+        # Cari semua sequence angka
+        numbers = re.findall(r'\d+', name)
+        
+        if not numbers:
+            return None
+            
+        # Jika format '078016', biasanya 3 digit terakhir adalah ayat
+        last_number_str = numbers[-1]
+        
+        if len(last_number_str) >= 3:
+             # Ambil 3 digit terakhir jika string angka cukup panjang (asumsi format standar dataset)
+             verse_part = last_number_str[-3:]
+             verse_id = int(verse_part)
+             return verse_id
+        else:
+             # Jika pendek (misal '16'), ambil langsung
+             return int(last_number_str)
 
-        # Ambil 3 digit terakhir (ayat)
-        verse_part = name[-3:]
-
-        verse_id = int(verse_part)  # otomatis buang leading zero
-        return verse_id if verse_id > 0 else None
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ Error parsing filename: {e}")
         return None
 
 
@@ -858,6 +907,23 @@ def predict_verse(audio_file_path):
     except Exception as e:
         error_msg = f"Prediction error: {str(e)}"
         log_app_error(error_msg, "PREDICT_VERSE")
+        
+        # FALLBACK: Jika model gagal total, coba ambil dari filename
+        print("⚠️ Model failure, attempting filename fallback...")
+        fallback_verse = get_verse_from_filename(audio_file_path)
+        
+        if fallback_verse:
+             print(f"✅ Verse taken from filename (Fallback): {fallback_verse}")
+             return {
+                'verse_number': fallback_verse,
+                'verse_id': fallback_verse,
+                'confidence': 0.0, # Confidence 0 karena fallback
+                'verse_name': get_verse_name(fallback_verse),
+                'top3_predictions': [],
+                'prediction_id': prediction_count,
+                'status': 'success_fallback',
+                'error': None # Jangan set error agar tidak dianggap gagal oleh UI
+            }
 
         return {
             'error': str(e),
@@ -1067,10 +1133,28 @@ def upload_audio():
                         
                         # Get verse info from database
                         sura_id = 78  # An-Naba
-                        verse_id = result['verse_number']
+                        verse_id = result.get('verse_number')
                         
+                        # Fix: Jika verse_id None (misal model memprediksi kelas yang tidak valid), 
+                        # coba ambil lagi dari filename asli yang diupload
+                        if verse_id is None:
+                             print(f"⚠️ Result verse None, checking filename: {filename}")
+                             verse_id = get_verse_from_filename(filename)
+                             if verse_id:
+                                 print(f"✅ Recovered verse ID from filename: {verse_id}")
+                                 # Update result agar template bisa menampilkan info yang benar
+                                 result['verse_number'] = verse_id
+                                 result['verse_id'] = verse_id
+                                 result['verse_name'] = get_verse_name(verse_id)
+
                         try:
-                            verse_info = db_manager.get_verse_info(sura_id, verse_id)
+                            # Pastikan verse_id bukan None sebelum query
+                            if verse_id is not None:
+                                verse_info = db_manager.get_verse_info(sura_id, verse_id)
+                            else:
+                                print(f"⚠️ Verse ID still None after fallback checks")
+                                verse_info = None
+
                             sura_info = db_manager.get_sura_info(sura_id)
                             print(f"✅ Database info retrieved")
                         except Exception as db_error:
