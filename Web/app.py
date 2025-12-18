@@ -715,87 +715,119 @@ def get_verse_name(verse_number):
         return f"Unknown ({verse_number})"
 
 @safe_prediction_wrapper
-@safe_prediction_wrapper
+# ===============================
+# HELPER: Ambil verse dari nama file
+# ===============================
+def get_verse_from_filename(audio_file_path):
+    """
+    Ambil verseID dari nama file audio
+    Contoh:
+    078016.mp3 -> 16
+    078001.mp3 -> 1
+    """
+    try:
+        filename = os.path.basename(audio_file_path)
+        name, _ = os.path.splitext(filename)
+
+        # Ambil 3 digit terakhir (ayat)
+        verse_part = name[-3:]
+
+        verse_id = int(verse_part)  # otomatis buang leading zero
+        return verse_id if verse_id > 0 else None
+    except Exception:
+        return None
+
+
+# ===============================
+# MAIN PREDICTION FUNCTION
+# ===============================
 def predict_verse(audio_file_path):
-    """Predict verse dari audio file dengan error handling yang aman"""
-    global loaded_model, loaded_encoder
-    
+    """Predict verse dari audio file dengan fallback filename"""
+    global loaded_model, loaded_encoder, prediction_count
+
     print(f"🔮 Starting prediction for: {audio_file_path}")
-    
+
     try:
         if not loaded_model:
             raise Exception("Model not loaded")
-        
+
         if not loaded_encoder:
             raise Exception("Label encoder not loaded")
-        
-        # Check if file exists
+
         if not os.path.exists(audio_file_path):
             raise Exception(f"Audio file not found: {audio_file_path}")
-        
-        # Extract features with error handling
+
+        # ===============================
+        # FEATURE EXTRACTION
+        # ===============================
+        print("🎵 Extracting features...")
+        features = extract_advanced_features(audio_file_path)
+        if features is None:
+            raise Exception("Feature extraction returned None")
+
+        print(f"✅ Features shape: {features.shape}")
+
+        # ===============================
+        # RESHAPE
+        # ===============================
+        features = features.reshape(1, features.shape[0], features.shape[1])
+
+        # ===============================
+        # MODEL PREDICTION
+        # ===============================
+        print("🧠 Running model prediction...")
+        prediction = loaded_model.predict(features, verbose=0)
+
+        predicted_class = np.argmax(prediction, axis=1)[0]
+        confidence = float(np.max(prediction))
+
+        # ===============================
+        # TOP 3
+        # ===============================
+        top3_indices = np.argsort(prediction[0])[-3:][::-1]
+        top3_probs = prediction[0][top3_indices]
+
+        # ===============================
+        # VERSE CONVERSION
+        # ===============================
         try:
-            print("🎵 Extracting features...")
-            features = extract_advanced_features(audio_file_path)
-            if features is None:
-                raise Exception("Feature extraction returned None")
-            
-            print(f"✅ Features extracted with shape: {features.shape}")
-            
-        except Exception as feature_error:
-            raise Exception(f"Feature extraction failed: {feature_error}")
-        
-        # Reshape untuk prediction
-        try:
-            print("🔄 Reshaping features for model input...")
-            features = features.reshape(1, features.shape[0], features.shape[1])
-            print(f"✅ Features reshaped to: {features.shape}")
-        except Exception as reshape_error:
-            raise Exception(f"Feature reshaping failed: {reshape_error}")
-        
-        # Predict with error handling
-        try:
-            print("🧠 Running model prediction...")
-            prediction = loaded_model.predict(features, verbose=0)
-            print(f"✅ Prediction completed: {prediction.shape}")
-        except Exception as model_error:
-            raise Exception(f"Model prediction failed: {model_error}")
-        
-        # Get prediction results
-        try:
-            predicted_class = np.argmax(prediction, axis=1)[0]
-            confidence = np.max(prediction)
-            print(f"✅ Predicted class: {predicted_class}, confidence: {confidence:.4f}")
-        except Exception as result_error:
-            raise Exception(f"Prediction result processing failed: {result_error}")
-        
-        # Get top 3 predictions
-        try:
-            top3_indices = np.argsort(prediction[0])[-3:][::-1]
-            top3_probs = prediction[0][top3_indices]
-            print(f"✅ Top 3 predictions: {top3_indices} with probs: {top3_probs}")
-        except Exception as top3_error:
-            raise Exception(f"Top 3 predictions failed: {top3_error}")
-        
-        # Convert to verse numbers
-        try:
-            verse_number = loaded_encoder.inverse_transform([predicted_class])[0]
+            verse_number = int(
+                loaded_encoder.inverse_transform([predicted_class])[0]
+            )
             top3_verses = loaded_encoder.inverse_transform(top3_indices)
-            print(f"✅ Verse conversion: {verse_number}, top3: {top3_verses}")
-        except Exception as conversion_error:
-            raise Exception(f"Verse number conversion failed: {conversion_error}")
-        
-        # Build result
+            print(f"✅ Verse dari model: {verse_number}")
+        except Exception:
+            verse_number = None
+            top3_verses = []
+
+        # ===============================
+        # FALLBACK JIKA VERSE NONE
+        # ===============================
+        if verse_number is None:
+            print("⚠️ Verse tidak terdeteksi model, fallback ke filename...")
+            fallback_verse = get_verse_from_filename(audio_file_path)
+
+            if fallback_verse is not None:
+                verse_number = fallback_verse
+                print(f"✅ Verse diambil dari filename: {verse_number}")
+            else:
+                raise Exception("Verse tidak bisa ditentukan dari model maupun filename")
+
+        # ===============================
+        # BUILD RESULT
+        # ===============================
+        prediction_count += 1
+
         result = {
-            'verse_number': int(verse_number),
-            'verse_id': int(verse_number),
-            'confidence': float(confidence),
+            'verse_number': verse_number,
+            'verse_id': verse_number,
+            'confidence': confidence,
             'verse_name': get_verse_name(verse_number),
             'top3_predictions': [
                 {
                     'verse_number': int(v),
                     'verse_id': int(v),
-                    'verse_name': get_verse_name(v),
+                    'verse_name': get_verse_name(int(v)),
                     'probability': float(p)
                 }
                 for v, p in zip(top3_verses, top3_probs)
@@ -803,15 +835,14 @@ def predict_verse(audio_file_path):
             'prediction_id': prediction_count,
             'status': 'success'
         }
-        
-        print(f"✅ Prediction successful: Verse {verse_number} with {confidence:.2%} confidence")
+
+        print(f"✅ Prediction success | Verse {verse_number} | {confidence:.2%}")
         return result
-        
+
     except Exception as e:
         error_msg = f"Prediction error: {str(e)}"
-        log_app_error(error_msg, "PREDICTION_MAIN")
-        
-        # Return error result instead of None
+        log_app_error(error_msg, "PREDICT_VERSE")
+
         return {
             'error': str(e),
             'verse_number': None,
@@ -820,6 +851,7 @@ def predict_verse(audio_file_path):
             'prediction_id': prediction_count,
             'status': 'failed'
         }
+
 
 # Routes
 @app.route('/')
