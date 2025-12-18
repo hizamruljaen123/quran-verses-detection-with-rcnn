@@ -5,14 +5,14 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-black text-dark mb-1">Training Deep Neural Cortex</h1>
-            <p class="text-slate-500 text-sm">Pemetaan dan pelatihan 41 ayat (0-40) An-Naba menggunakan arsitektur NumPy
-                Modular.</p>
+            <h1 class="text-3xl font-black text-dark mb-1">Training RCNN Custom Algorithm</h1>
+            <p class="text-slate-500 text-sm">Pemetaan dan pelatihan 41 ayat (0-40) An-Naba menggunakan RCNN Custom
+                Algorithm.</p>
         </div>
         <button id="startTrainBtn"
             class="flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-2xl shadow-lg transition-all duration-300 hover:translate-y-[-2px] group">
             <i class="bi bi-play-fill text-xl mr-2 group-hover:scale-125 transition-transform"></i>
-            Jalankan Training Mendalam
+            Jalankan Training RCNN
         </button>
     </div>
 
@@ -90,10 +90,10 @@
             </div>
         </div>
 
-        <!-- Neural Cortex Grid -->
+        <!-- RCNN Algorithm Grid -->
         <div class="lg:col-span-8">
             <div class="bg-dark rounded-3xl p-8 shadow-2xl relative overflow-hidden min-h-[420px] flex flex-col group">
-                <h6 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-12">Neural Cortex
+                <h6 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-12">RCNN Model
                     Visualization</h6>
 
                 <div class="flex justify-between items-center flex-grow px-12 relative z-10">
@@ -286,7 +286,7 @@
     }
 
     btn.onclick = function () {
-        appendLog('<span class="text-primary font-black uppercase tracking-widest">Initializing Deep Learning Thread...</span>');
+        appendLog('<span class="text-primary font-black uppercase tracking-widest">Initializing RCNN Custom Algorithm...</span>');
         btn.disabled = true;
         btn.classList.add('opacity-50', 'cursor-not-allowed');
         btn.innerHTML = '<i class="bi bi-hourglass-split mr-3 animate-spin"></i> Training in Progress...';
@@ -323,7 +323,7 @@
 
                         if (viz.status === 'training') {
                             const p = document.getElementById('currentPhase');
-                            p.innerText = `PHASE 2: DEEP GRADIENT (EPOCH ${viz.epoch})`;
+                            p.innerText = `PHASE 2: RCNN TRAINING (EPOCH ${viz.epoch})`;
                             p.className = "inline-block px-3 py-1 rounded-full bg-purple-500/10 text-purple-500 text-[10px] font-black mb-4";
 
                             document.getElementById('accVal').innerText = (viz.accuracy * 100).toFixed(1) + '%';
@@ -332,7 +332,7 @@
                             updateGraph(accGraph, viz.accuracy, 1.0, 'bg-primary');
                             updateGraph(lossGraph, viz.loss, 3.0, 'bg-rose-500');
                             pulseLayers();
-                            document.getElementById('activityLog').innerText = `GRADIENT DESCENT EPOCH ${viz.epoch}... UPDATING WEIGHTS...`;
+                            document.getElementById('activityLog').innerText = `RCNN OPTIMIZATION EPOCH ${viz.epoch}... UPDATING WEIGHTS...`;
                         }
 
                         if (viz.status === 'correcting') {
@@ -375,7 +375,6 @@
                                             <p class="text-lg font-black text-emerald-500">${data.summary.accuracy}</p>
                                         </div>
                                         <div class="bg-black/40 p-4 rounded-2xl text-center border border-white/5">
-                                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Loss</p>
                                             <p class="text-lg font-black text-amber-500">${data.summary.loss}</p>
                                         </div>
                                         <div class="bg-black/40 p-4 rounded-2xl text-center border border-white/5">
@@ -383,7 +382,7 @@
                                             <p class="text-lg font-black text-indigo-400">${data.summary.f1}</p>
                                         </div>
                                     </div>
-                                    <p class="text-[9px] text-slate-600 mt-4 text-center font-bold italic tracking-tighter">Verified Cortex Model - Exported to metrics.json</p>
+                                     <p class="text-[9px] text-slate-600 mt-4 text-center font-bold italic tracking-tighter">Verified RCNN Custom Model - Exported to metrics.json</p>
                                 </div>
                             `);
                         }
