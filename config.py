@@ -19,6 +19,7 @@ class Config:
     
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     DATASET_DIR = os.path.join(BASE_DIR, 'dataset')
+    KAMUS_PATH = os.path.join(BASE_DIR, 'kamus.json')
 
     @staticmethod
     def init_app(app):

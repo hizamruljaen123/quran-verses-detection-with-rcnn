@@ -23,7 +23,7 @@
                     <div
                         class="flex items-center px-5 py-2.5 bg-white/10 rounded-full border border-white/5 backdrop-blur-sm">
                         <i class="bi bi-check-circle-fill text-primary mr-3"></i>
-                        <span class="text-sm font-bold">41 Classes Mapped</span>
+                        <span class="text-sm font-bold">{% if dataset_summary %}{{ dataset_summary.total_classes }} classes across {{ dataset_summary.total_surahs }} surah(s){% else %}Dataset summary unavailable{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -98,8 +98,26 @@
         <!-- Dataset Info Card -->
         <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-4 border-l-primary">
             <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Dataset Quran</h6>
-            <p class="text-slate-600 text-sm leading-relaxed font-medium">Terlatih pada 41 ayat (0-40) dengan 7 variasi
-                qori per ayat untuk akurasi generalisasi yang optimal.</p>
+            {% if dataset_summary %}
+            <p class="text-slate-600 text-sm leading-relaxed font-medium">Terdeteksi <strong>{{ dataset_summary.total_classes }}</strong> kelas di <strong>{{ dataset_summary.total_surahs }}</strong> surah, total <strong>{{ dataset_summary.total_samples }}</strong> sampel. Klik bagian Training untuk melihat detail per-surah.</p>
+
+            <div class="mt-6">
+                <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Surah Tersedia</h6>
+                <div class="max-h-36 overflow-y-auto space-y-2">
+                    {% for s in dataset_summary.surahs[:8] %}
+                    <div class="flex items-center justify-between text-sm py-2">
+                        <div class="truncate"><strong>{{ s.sura }}</strong> - {{ s.name or 'N/A' }}</div>
+                        <div class="text-slate-400 text-xs">{{ s.sample_count }} sampel</div>
+                    </div>
+                    {% endfor %}
+                    {% if dataset_summary.surahs|length > 8 %}
+                    <div class="text-xs text-slate-400">+{{ dataset_summary.surahs|length - 8 }} lainnya...</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-slate-600 text-sm leading-relaxed font-medium">Dataset tidak tersedia atau belum terindeks.</p>
+            {% endif %}
         </div>
 
         <!-- Speed Stats Card -->

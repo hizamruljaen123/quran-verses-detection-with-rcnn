@@ -35,8 +35,9 @@
                     <div class="relative group">
                         <div
                             class="h-48 w-48 rounded-[3rem] bg-emerald-50 text-primary flex flex-col items-center justify-center border-4 border-emerald-100 shadow-inner group-hover:rotate-3 transition-transform duration-500">
-                            <span class="text-7xl font-black drop-shadow-sm">{{ result.verse_id }}</span>
-                            <span class="text-[10px] font-black uppercase tracking-widest mt-2 opacity-50">Ayat</span>
+                            <span class="text-4xl font-black drop-shadow-sm">{% if result.sura and result.verse %}{{ result.sura }}:{{ result.verse }}{% else %}{{ result.verse_id or 'N/A' }}{% endif %}</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest mt-2 opacity-50">Surah : Ayat</span>
+                            <div class="text-sm font-black mt-2">{% if db_data.suraName %}{{ db_data.suraName }}{% endif %}</div>
                         </div>
                         <!-- Decorative Ring -->
                         <div class="absolute -inset-4 border-2 border-primary/10 rounded-[3.5rem] animate-pulse"></div>
@@ -218,9 +219,12 @@
                 <div class="flex items-center">
                     <div
                         class="h-12 w-12 bg-slate-100 text-slate-600 font-black rounded-2xl flex items-center justify-center mr-6 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        {{ item.verse }}
+                        {% if item.sura and item.verse %}{{ item.sura }}:{{ item.verse }}{% else %}{{ item.verse }}{% endif %}
                     </div>
-                    <span class="text-lg font-black text-slate-700">Ayat {{ item.verse }}</span>
+                    <span class="text-lg font-black text-slate-700">{% if item.sura and item.verse %}Surah {{ item.sura }} - Ayat {{ item.verse }}{% else %}Ayat {{ item.verse }}{% endif %}
+                        {% if kamus and item.sura and (item.sura in kamus) %}
+                        <div class="text-xs text-slate-400">{{ kamus[item.sura].name }}</div>
+                        {% endif %}</span>
                 </div>
                 <div class="flex items-center gap-6">
                     <div

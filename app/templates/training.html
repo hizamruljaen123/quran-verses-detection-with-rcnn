@@ -6,14 +6,20 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-3xl font-black text-dark mb-1">Training RCNN Custom Algorithm</h1>
-            <p class="text-slate-500 text-sm">Pemetaan dan pelatihan 41 ayat (0-40) An-Naba menggunakan RCNN Custom
-                Algorithm.</p>
+            <p class="text-slate-500 text-sm">Pemetaan dan pelatihan ayat berdasarkan dataset (multi-surat). Sistem akan mendeteksi sura dan ayat berdasarkan folder dataset.</p>
         </div>
-        <button id="startTrainBtn"
-            class="flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-2xl shadow-lg transition-all duration-300 hover:translate-y-[-2px] group">
-            <i class="bi bi-play-fill text-xl mr-2 group-hover:scale-125 transition-transform"></i>
-            Jalankan Training RCNN
-        </button>
+        <div class="flex items-center gap-3">
+            <button id="startTrainBtn"
+                class="flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-2xl shadow-lg transition-all duration-300 hover:translate-y-[-2px] group">
+                <i class="bi bi-play-fill text-xl mr-2 group-hover:scale-125 transition-transform"></i>
+                Jalankan Training RCNN
+            </button>
+            <button id="stopTrainBtn" disabled
+                class="flex items-center px-5 py-3 bg-rose-500 text-white font-black rounded-2xl shadow-sm opacity-60 cursor-not-allowed">
+                <i class="bi bi-stop-fill text-lg mr-2"></i>
+                Hentikan
+            </button>
+        </div>
     </div>
 
     <!-- Main Visualizer Area -->
@@ -138,7 +144,7 @@
                         <div
                             class="node w-8 h-8 rounded-full bg-primary/20 border-2 border-primary/50 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                         </div>
-                        <span class="text-[8px] font-black text-slate-600 mt-4 uppercase">Softmax (41)</span>
+                        <span class="text-[8px] font-black text-slate-600 mt-4 uppercase">Softmax (classes)</span>
                     </div>
                 </div>
 
@@ -161,15 +167,26 @@
         <div class="lg:col-span-4 h-full">
             <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full flex flex-col">
                 <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-8 text-center md:text-left">
-                    Ayat Activation Map (0-40)</h6>
-                <div id="verseGrid" class="grid grid-cols-5 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                    {% for i in range(41) %}
-                    <div id="v-{{ i }}"
-                        class="aspect-square rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-300 transition-all duration-300">
-                        {{ i }}
-                    </div>
-                    {% endfor %}
-                </div>
+                    Activation Map (mapped classes)</h6>
+                <div id="verseGrid" class="grid grid-cols-5 md:grid-cols-4 xl:grid-cols-5 gap-3"></div>
+
+                <script>
+                    // kamus data passed from server
+                    const kamusData = {{ kamus|tojson|safe }};
+
+                    function renderVerseGrid(classes) {
+                        const grid = document.getElementById('verseGrid');
+                        grid.innerHTML = '';
+                        classes.sort((a, b) => a.idx - b.idx).forEach(c => {
+                            const el = document.createElement('div');
+                            el.id = `v-${c.idx}`;
+                            el.className = 'aspect-square rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-300 transition-all duration-300';
+                            const suraName = (kamusData && kamusData[c.sura]) ? kamusData[c.sura].name : '';
+                            el.innerHTML = `<div class="text-center"><div class="font-bold text-xs">${c.sura}:${c.verse}</div><div class="text-[10px] text-slate-400">${suraName}</div></div>`;
+                            grid.appendChild(el);
+                        });
+                    }
+                </script>
 
                 <div class="mt-12 pt-8 border-t border-slate-100 space-y-4">
                     <div class="flex items-center gap-3">
@@ -248,6 +265,7 @@
 
 <script>
     const btn = document.getElementById('startTrainBtn');
+    const stopBtn = document.getElementById('stopTrainBtn');
     const logConsole = document.getElementById('logConsole');
     const accGraph = document.getElementById('accGraph');
     const lossGraph = document.getElementById('lossGraph');
@@ -291,13 +309,17 @@
         btn.classList.add('opacity-50', 'cursor-not-allowed');
         btn.innerHTML = '<i class="bi bi-hourglass-split mr-3 animate-spin"></i> Training in Progress...';
 
+        // Enable the Stop button
+        stopBtn.disabled = false;
+        stopBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+
         document.getElementById('livePulse').classList.remove('hidden');
 
         fetch('/api/train', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
                 appendLog(`<span class="text-white font-black">${data.message}</span>`);
-                const eventSource = new EventSource('{{ url_for("main.train_progress") }}');
+                let eventSource = new EventSource('{{ url_for("main.train_progress") }}');
                 let lastLogCount = 0;
 
                 eventSource.onmessage = function (e) {
@@ -321,7 +343,7 @@
                     if (data.visual_data) {
                         const viz = data.visual_data;
 
-                        if (viz.status === 'training') {
+                            if (viz.status === 'training') {
                             const p = document.getElementById('currentPhase');
                             p.innerText = `PHASE 2: RCNN TRAINING (EPOCH ${viz.epoch})`;
                             p.className = "inline-block px-3 py-1 rounded-full bg-purple-500/10 text-purple-500 text-[10px] font-black mb-4";
@@ -335,12 +357,25 @@
                             document.getElementById('activityLog').innerText = `RCNN OPTIMIZATION EPOCH ${viz.epoch}... UPDATING WEIGHTS...`;
                         }
 
+                        if (viz.status === 'discovered' && viz.classes) {
+                            // Render class grid dynamically when discovery happens
+                            try { renderVerseGrid(viz.classes); } catch (e) { console.error(e); }
+                        }
+
                         if (viz.status === 'correcting') {
                             const p = document.getElementById('currentPhase');
-                            p.innerText = `PHASE 3: FORCED RETRAINING (AYAT ${viz.current_verse})`;
+                            const displayLabel = viz.current_verse !== undefined ? viz.current_verse : (viz.current_class_index !== undefined ? viz.current_class_index : '---');
+                            p.innerText = `PHASE 3: FORCED RETRAINING (AYAT ${displayLabel})`;
                             p.className = "inline-block px-3 py-1 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-black mb-4";
 
-                            const v = document.getElementById(`v-${viz.current_verse}`);
+                            // Prefer class index for element mapping when available
+                            let v = null;
+                            if (viz.current_class_index !== undefined) {
+                                v = document.getElementById(`v-${viz.current_class_index}`);
+                            } else if (viz.current_verse !== undefined) {
+                                v = document.getElementById(`v-${viz.current_verse}`);
+                            }
+
                             if (v) {
                                 v.classList.add('animate-pulse', 'bg-rose-500', 'border-rose-600', 'shadow-[0_0_15px_#f43f5e]');
                             }
@@ -357,10 +392,16 @@
                         lastLogCount = data.logs.length;
                     }
 
-                    if (!data.is_training && data.percent === 100) {
-                        eventSource.close();
-                        btn.innerHTML = '<i class="bi bi-check-circle-fill mr-3"></i> Training Selesai';
-                        btn.classList = 'flex items-center px-6 py-3 bg-emerald-600 text-white font-black rounded-2xl shadow-lg';
+                    if (!data.is_training) {
+                        // Ensure client closes the SSE stream when training stops regardless of percent
+                        try { eventSource.close(); } catch(e) { console.warn('Failed to close EventSource:', e); }
+
+                        // Disable Stop button and re-enable Start button
+                        try { stopBtn.disabled = true; stopBtn.classList.add('opacity-60', 'cursor-not-allowed'); } catch(e) {}
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btn.innerHTML = '<i class="bi bi-play-fill text-xl mr-2 group-hover:scale-125 transition-transform"></i> Jalankan Training RCNN';
+
                         document.getElementById('livePulse').classList.add('hidden');
 
                         if (data.summary) {
@@ -393,6 +434,54 @@
                         });
                     }
                 };
+
+                // Attempt reconnect on transient SSE errors but only while training is active
+                eventSource.onerror = function (e) {
+                    appendLog('⚠️ SSE connection error or closed. Will attempt to reconnect if training appears active.');
+
+                    // If a stop was requested, don't attempt reconnects
+                    if ((document.getElementById('statusText')||{}).innerText.toLowerCase().includes('aborted') || (document.getElementById('statusText')||{}).innerText.toLowerCase().includes('stopped')) {
+                        appendLog('Info: training appears stopped/aborted; not reconnecting.');
+                        try { eventSource.close(); } catch(e) {}
+                        return;
+                    }
+
+                    // Read the status text to determine if training is still ongoing
+                    const statusText = (document.getElementById('statusText') || {innerText: ''}).innerText.toLowerCase();
+                    const active = statusText.includes('epoch') || statusText.includes('training') || statusText.includes('verifying') || statusText.includes('starting');
+
+                    if (!active) {
+                        appendLog('Info: training appears finished; not reconnecting.');
+                        try { eventSource.close(); } catch(e) {}
+                        return;
+                    }
+
+                    appendLog('🔁 Attempting reconnection in 2s...');
+                    setTimeout(() => {
+                        try {
+                            const newSource = new EventSource('{{ url_for("main.train_progress") }}');
+                            newSource.onmessage = eventSource.onmessage;
+                            newSource.onerror = eventSource.onerror;
+                            try { eventSource.close(); } catch(e) {}
+                            eventSource = newSource; // replace reference
+                            appendLog('🔁 Reconnected to training progress stream.');
+                        } catch (ex) {
+                            appendLog('Reconnection failed: ' + ex);
+                        }
+                    }, 2000);
+                };
+
+                // Stop button handler
+                stopBtn.onclick = function () {
+                    stopBtn.disabled = true;
+                    stopBtn.classList.add('opacity-60', 'cursor-not-allowed');
+                    appendLog('⏹️ Stop requested from client...');
+                    fetch('/api/stop-train', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(d => appendLog(`<span class="text-rose-400 font-black">${d.message}</span>`))
+                        .catch(e => appendLog('Error sending stop request: ' + e));
+                };
+
             });
     }
 </script>

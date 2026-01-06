@@ -11,7 +11,11 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html')
+    # Provide dataset summary and kamus to the front-end for dynamic UI
+    from .utils import load_kamus, summarize_dataset
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    summary = summarize_dataset(current_app.config['DATASET_DIR'], kamus)
+    return render_template('index.html', kamus=kamus, dataset_summary=summary)
 
 @main_bp.route('/upload', methods=['POST'])
 def upload_file():
@@ -31,23 +35,45 @@ def upload_file():
         
         prediction_result = current_app.model_handler.predict(upload_path)
         
-        verse_id = prediction_result['verse_id']
-        db_data = get_verse_info(78, verse_id)
-        
+        # Prefer sura/verse from prediction result (multi-sura support)
+        sura = prediction_result.get('sura')
+        verse = prediction_result.get('verse')
+        if sura is not None and verse is not None:
+            db_data = get_verse_info(int(sura), verse)
+        else:
+            # Fallback to legacy behavior: assume sura 78 if possible
+            fallback_verse = prediction_result.get('verse_id')
+            db_data = get_verse_info(78, fallback_verse)
+
+        # Attach surah name from kamus.json if available
+        from .utils import load_kamus, get_sura_name
+        kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+        try:
+            sura_key = str(int(sura)).zfill(3) if sura is not None else str(int(db_data.get('suraId', 78))).zfill(3)
+        except Exception:
+            sura_key = str(db_data.get('suraId', 78))
+        db_data['suraName'] = get_sura_name(kamus, sura_key) if kamus else None
+
         return render_template('result.html', 
                                result=prediction_result, 
                                db_data=db_data,
-                               filename=filename)
+                               filename=filename,
+                               kamus=kamus)
     else:
         flash('Invalid file type')
         return redirect(url_for('main.index'))
 
 @main_bp.route('/training')
 def training():
-    return render_template('training.html')
+    from .utils import load_kamus, summarize_dataset
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    summary = summarize_dataset(current_app.config['DATASET_DIR'], kamus)
+    return render_template('training.html', kamus=kamus, dataset_summary=summary)
 
 @main_bp.route('/api/train', methods=['POST'])
 def start_training():
+    from .utils import TrainingProgress
+
     app_config = {
         'DATASET_DIR': current_app.config['DATASET_DIR'],
         'MODEL_PATH': current_app.config['MODEL_PATH'],
@@ -55,6 +81,10 @@ def start_training():
         'METADATA_PATH': current_app.config['METADATA_PATH']
     }
     dataset_path = app_config['DATASET_DIR']
+
+    # Prevent concurrent trainings
+    if getattr(TrainingProgress, '_is_training', False):
+        return jsonify({'status': 'already_running', 'message': 'Training already in progress.'})
     
     def run_training(config):
         train_model_task(dataset_path, config)
@@ -64,18 +94,39 @@ def start_training():
     
     return jsonify({'status': 'started', 'message': 'Training process initiated in background using ' + dataset_path})
 
+
+@main_bp.route('/api/stop-train', methods=['POST'])
+def stop_training():
+    from .utils import TrainingProgress
+    if not getattr(TrainingProgress, '_is_training', False):
+        return jsonify({'status': 'not_running', 'message': 'No active training to stop.'})
+    TrainingProgress.request_stop()
+    return jsonify({'status': 'stopping', 'message': 'Stop request submitted.'})
+
 @main_bp.route('/api/train-progress')
 def train_progress():
     def generate():
-        while True:
-            data = TrainingProgress.get_update()
-            yield f"data: {json.dumps(data)}\n\n"
-            if not data['is_training'] and data['percent'] == 100:
-                break
-            time.sleep(1)
-            
+        try:
+            while True:
+                data = TrainingProgress.get_update()
+                try:
+                    yield f"data: {json.dumps(data)}\n\n"
+                except GeneratorExit:
+                    # client disconnected
+                    break
+
+                # break if training has finished or stopped for any reason
+                if not data['is_training']:
+                    break
+
+                time.sleep(1)
+        except Exception as e:
+            print(f"SSE generator error: {e}")
+            TrainingProgress.push_log(f"SSE generator error: {e}")
+
     from flask import Response
-    return Response(generate(), mimetype='text/event-stream')
+    headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    return Response(generate(), mimetype='text/event-stream', headers=headers)
 
 @main_bp.route('/evaluate')
 def evaluate():
@@ -100,6 +151,14 @@ def evaluate():
             
     return render_template('evaluate.html', metrics=metrics)
 
+
+@main_bp.route('/api/dataset-summary')
+def api_dataset_summary():
+    from .utils import load_kamus, summarize_dataset
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    summary = summarize_dataset(current_app.config['DATASET_DIR'], kamus)
+    return jsonify(summary)
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
@@ -112,22 +171,56 @@ def get_verse_info(sura_id, verse_id):
         'suraId': sura_id,
         'verseID': verse_id
     }
-    
+
+    # If verse_id not provided, return default structure
     if verse_id is None:
         return default_data
+
+    # Normalize sura_id type where possible
+    try:
+        sura_query = int(sura_id)
+    except Exception:
+        sura_query = sura_id
 
     conn = get_db_connection()
     if not conn:
         return default_data
-        
+
     try:
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM quran_id WHERE suraId = %s AND verseID = %s"
-        cursor.execute(query, (sura_id, verse_id))
-        result = cursor.fetchone()
+        # Select only the fields we care about to ensure consistent keys
+        query = "SELECT ayahText, indoText, readText, suraId, verseID FROM quran_id WHERE suraId = %s AND verseID = %s"
+        cursor.execute(query, (sura_query, verse_id))
+        row = cursor.fetchone()
         cursor.close()
         conn.close()
-        return result if result else default_data
+
+        if not row:
+            return default_data
+
+        # Normalize and ensure types
+        ayahText = row.get('ayahText') if row.get('ayahText') is not None else row.get('ayah_text') if row.get('ayah_text') is not None else 'Data not found'
+        indoText = row.get('indoText') if row.get('indoText') is not None else row.get('indo_text') if row.get('indo_text') is not None else '-'
+        readText = row.get('readText') if row.get('readText') is not None else row.get('read_text') if row.get('read_text') is not None else '-'
+
+        try:
+            sura_ret = int(row.get('suraId')) if row.get('suraId') is not None else int(sura_query)
+        except Exception:
+            sura_ret = sura_query
+
+        try:
+            verse_ret = int(row.get('verseID')) if row.get('verseID') is not None else int(verse_id)
+        except Exception:
+            verse_ret = verse_id
+
+        normalized = {
+            'ayahText': ayahText,
+            'indoText': indoText,
+            'readText': readText,
+            'suraId': sura_ret,
+            'verseID': verse_ret
+        }
+        return normalized
     except Exception as e:
         print(f"DB Error: {e}")
         return default_data
