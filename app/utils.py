@@ -227,6 +227,11 @@ class ModelHandler:
                         meta = json.load(f)
                         labels = meta.get('labels', [])
                         self.label_map = {int(item['idx']): (item['sura'], int(item['verse'])) for item in labels}
+
+                        # Load prototypes (centroids) if present in metadata
+                        protos = meta.get('prototypes', {})
+                        if protos:
+                            self.class_prototypes = {int(k): np.array(v) for k, v in protos.items()}
                     print("Metadata label map loaded.")
                 except Exception as e:
                     print(f"Error loading metadata: {e}")
@@ -239,6 +244,14 @@ class ModelHandler:
             print(f"Error loading model: {e}")
             self.model = None
             self.label_map = None
+
+    def clear_cache(self):
+        """Clear in-memory detection cache and quick runtime placeholders so detections are always fresh."""
+        try:
+            self._last_prediction = None
+            TrainingProgress.push_log("🧹 Model detection cache cleared.")
+        except Exception:
+            pass
 
     @staticmethod
     def extract_features_static(file_path):
@@ -305,6 +318,39 @@ class ModelHandler:
                     s, v = self.label_map[pred_idx]
                     result['sura'] = s
                     result['verse'] = int(v)
+
+                # Prototype-based verification (improves robustness for ambiguous cases)
+                try:
+                    if getattr(self, 'class_prototypes', None):
+                        X_norm = X_in.flatten()
+                        def cosine(a, b):
+                            return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
+                        best_sim = -1.0
+                        best_idx = pred_idx
+                        for info in result['top3']:
+                            idx = info['idx']
+                            proto = self.class_prototypes.get(idx)
+                            if proto is not None:
+                                sim = cosine(X_norm, proto)
+                                info['proto_sim'] = sim
+                                if sim > best_sim:
+                                    best_sim = sim
+                                    best_idx = idx
+                        # If prototype strongly favors another class, trust it (threshold tunable)
+                        if best_idx != pred_idx and best_sim > 0.70:
+                            pred_idx = int(best_idx)
+                            result['label_index'] = pred_idx
+                            if self.label_map and pred_idx in self.label_map:
+                                s, v = self.label_map[pred_idx]
+                                result['sura'] = s
+                                result['verse'] = int(v)
+                            result['confidence'] = float(probs[pred_idx]) * (0.65 + 0.35 * best_sim)
+                            result['source'] = 'model+prototype'
+                except Exception as e:
+                    TrainingProgress.push_log(f"Prototype verification error: {e}")
+
+                # store last prediction for diagnostics and allow explicit cache clearing
+                self._last_prediction = result
 
         # Fallback: try to parse filename as sura+verse like 078000.mp3
         if result['sura'] is None or result['verse'] is None:
@@ -473,7 +519,7 @@ class TorchWrapper:
     # Note: feature extraction and predict methods are implemented within the ModelHandler class to ensure correct scoping.
 
 
-def train_model_task(dataset_path, config):
+def train_model_task(dataset_path, config, app_obj=None):
     try:
         TrainingProgress.reset()
         # Idle timeout in seconds: if no activity reported for this duration, abort training
@@ -907,16 +953,38 @@ def train_model_task(dataset_path, config):
                 labels_meta = []
                 for idx, info in idx_to_label.items():
                     labels_meta.append({'idx': idx, 'sura': info['sura'], 'verse': int(info['verse']), 'count': counts_per_label.get((info['sura'], info['verse']), 0)})
+
+                # Compute per-class prototypes (centroids) on normalized feature space X
+                prototypes = {}
+                for idx in range(num_classes):
+                    mask = (y == idx)
+                    if np.sum(mask) > 0:
+                        prototypes[int(idx)] = np.mean(X[mask], axis=0).tolist()
+
                 with open(metadata_path, 'w') as f:
-                    json.dump({'labels': labels_meta, 'num_classes': len(idx_to_label)}, f)
+                    json.dump({'labels': labels_meta, 'num_classes': len(idx_to_label), 'prototypes': prototypes}, f)
                 TrainingProgress.push_log(f"💾 Metadata saved to {metadata_path}")
             except Exception as e:
                 TrainingProgress.push_log(f"Error saving metadata: {e}")
 
+        # Attach prototypes to model object for runtime verification
+        try:
+            model.class_prototypes = {int(k): np.array(v) for k, v in prototypes.items()}
+        except Exception:
+            model.class_prototypes = {}
+
         # Save Model
         with open(config['MODEL_PATH'], 'wb') as f:
             pickle.dump(model, f)
-            
+
+        # Try to reload model into running app if app_obj provided
+        if app_obj and hasattr(app_obj, 'model_handler'):
+            try:
+                app_obj.model_handler.load_model()
+                TrainingProgress.push_log("🔁 Model reloaded into running app automatically.")
+            except Exception as e:
+                TrainingProgress.push_log(f"⚠️ Could not auto-reload model into running app: {e}")
+
         TrainingProgress.push_log("💾 Custom Deep Model strictly verified and saved successfully.")
         TrainingProgress.set_status("Finished", 100)
         TrainingProgress._is_training = False

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black">Panduan Tajwid Lengkap ✅</h1>
+            <p class="text-sm text-slate-500 mt-1">Penjelasan ringkas, aturan, dan contoh untuk tiap jenis tajwid (berdasarkan legenda pada hasil analisis).</p>
+        </div>
+        <a href="{{ url_for('main.index') }}" class="px-4 py-2 bg-white rounded-xl border border-slate-100 font-black text-slate-600 hover:bg-slate-50">Kembali</a>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-50 flex items-center bg-slate-50/30">
+            <h3 class="text-slate-900 font-black text-sm uppercase tracking-widest flex items-center"><i class="bi bi-book mr-3 text-primary text-lg"></i> Panduan Tajwid</h3>
+        </div>
+        <div class="p-8">
+            <p class="text-slate-600">Halaman ini menjelaskan jenis-jenis tajwid yang ditandai pada halaman hasil beserta aturan singkat dan contoh. Contoh yang ditampilkan bersifat ilustratif; jika Anda ingin, saya dapat mengisi contoh ayat yang diambil langsung dari Al-Qur'an dan menandainya secara otomatis — konfirmasi saja.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Each rule card -->
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#8e24aa] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Mad Wajib Muttasil</h4>
+                            <p class="text-sm text-slate-500 mt-1">Panjangnya suara (mad) yang wajib ketika huruf mad bertemu hamzah menurut ketentuan khusus; biasanya dipanjangkan lebih lama daripada mad biasa.</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh (ilustratif):</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">قَالَ</div>
+                                <div class="text-xs text-slate-500 mt-1">Transliterasi: <em>Qāla</em> — contoh mad (ilustratif). Untuk kepastian contoh dari mushaf, saya dapat mengisi ayat yang terverifikasi.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#1e88e5] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Alif Lam Syamsiyah</h4>
+                            <p class="text-sm text-slate-500 mt-1">Aturan pembacaan untuk huruf 'alif lam' pada nila-nila tertentu, di mana huruf 'lam' tidak terucap karena huruf syamsiyah memerintah tafkhim/izhar tertentu.</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh:</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">ٱلشَّمْسُ</div>
+                                <div class="text-xs text-slate-500 mt-1">Transliterasi: <em>ash‑shamsu</em> — contoh huruf syamsiyah (ش) menyebabkan assimilasi lam (l tidak terucap jelas).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#e53935] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Mad Thabi'i / Iwadh / Aridh</h4>
+                            <p class="text-sm text-slate-500 mt-1">Kumpulan varian mad: mad thabi'i (mad biasa), mad iwadh (penggantian saat bertemu hamzah saat berhenti/waqf) dan mad aridh (mad karena berhenti pada huruf yang semula berharakat).</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh (ilustratif):</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-lg">• Mad Thabi'i: قَالَ (Qāla) — mad biasa (2 harakat)</div>
+                                <div class="font-arabic text-lg">• Mad Iwadh: سُؤال (suʼāl) — mad karena bertemu hamzah ketika wasal/waqf</div>
+                                <div class="font-arabic text-lg">• Mad Aridh: مَنِ (māni) — mad akibat waqf pada huruf berharakat (ilustratif)</div>
+                                <div class="text-xs text-slate-500 mt-1">Silakan minta pengisian contoh ayat yang akurat jika ingin contoh dari Mushaf.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#2e7d32] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Izhar Syafawi</h4>
+                            <p class="text-sm text-slate-500 mt-1">Cara melafalkan huruf 'mim' yang jelas ketika bertemu huruf tertentu — tidak disertai ghunnah.</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh:</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">تَرْمِيهِمْ بِحِجَارَةٍ</div>
+                                <div class="text-xs text-slate-500 mt-1">Contoh dari Surat Al‑Fil (ilustratif): menunjukkan perbedaan pengucapan mīm‑sākinah menurut huruf berikutnya.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#6d4c41] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Ghunnah Musyaddadah</h4>
+                            <p class="text-sm text-slate-500 mt-1">Ghunnah (suara nasal) yang terjadi pada huruf ber-shaddah (mim/nun ganda) — wajib dipanjangkan sekitar dua hitungan saat bertemu shaddah.</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh:</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">إِنَّمَا</div>
+                                <div class="text-xs text-slate-500 mt-1">Transliterasi: <em>innamā</em> — terdapat ghunnah pada nun‑syaddah (نّ) yang dipanjangkan ~2 hitungan.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#1b5e20] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Idgham Bighunnah</h4>
+                            <p class="text-sm text-slate-500 mt-1">Penggabungan bunyi (idgham) dengan mendengungkan (bighunnah) ketika nun sukun atau tanwin bertemu huruf tertentu (ya, nun, mim, waw).</p>
+                            <p class="mt-3 text-xs text-slate-400"><strong>Contoh:</strong></p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">أَشْهَدُ أَنَّ</div>
+                                <div class="text-xs text-slate-500 mt-1">Contoh (Shahada): nun‑sukun pada akhir kata diserap ke nun berikutnya dengan ghunnah (idgham bighunnah).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <span class="w-8 h-8 bg-[#fb8c00] rounded-xl shadow-sm border border-black/5"></span>
+                        <div>
+                            <h4 class="font-black">Mad Wajib (Variasi)</h4>
+                            <p class="text-sm text-slate-500 mt-1">Varian mad wajib yang diperlakukan khusus menurut konteks bacaan atau posisi berhenti.</p>
+                            <p class="mt-3 text-xs text-slate-400">Untuk detail panjang bacaan dan contoh, pilih 'Isi Contoh' di bawah.</p>
+                            <div class="mt-2">
+                                <div class="font-arabic text-2xl">آمَنَ</div>
+                                <div class="text-xs text-slate-500 mt-1">Contoh ilustratif; variasi mad wajib tergantung posisi dan tanda maddah pada huruf.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

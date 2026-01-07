@@ -86,10 +86,11 @@ def start_training():
     if getattr(TrainingProgress, '_is_training', False):
         return jsonify({'status': 'already_running', 'message': 'Training already in progress.'})
     
-    def run_training(config):
-        train_model_task(dataset_path, config)
+    def run_training(config, app_obj):
+        # pass the app object to allow training task to reload the model into running app
+        train_model_task(dataset_path, config, app_obj)
 
-    thread = threading.Thread(target=run_training, args=(app_config,))
+    thread = threading.Thread(target=run_training, args=(app_config, current_app._get_current_object()))
     thread.start()
     
     return jsonify({'status': 'started', 'message': 'Training process initiated in background using ' + dataset_path})
@@ -102,6 +103,22 @@ def stop_training():
         return jsonify({'status': 'not_running', 'message': 'No active training to stop.'})
     TrainingProgress.request_stop()
     return jsonify({'status': 'stopping', 'message': 'Stop request submitted.'})
+
+@main_bp.route('/api/reload-model', methods=['POST'])
+def reload_model():
+    try:
+        current_app.model_handler.load_model()
+        return jsonify({'status': 'reloaded', 'message': 'Model reloaded successfully.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@main_bp.route('/api/clear-model-cache', methods=['POST'])
+def clear_model_cache():
+    try:
+        current_app.model_handler.clear_cache()
+        return jsonify({'status': 'cleared', 'message': 'Model cache cleared.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @main_bp.route('/api/train-progress')
 def train_progress():
@@ -150,6 +167,14 @@ def evaluate():
             print(f"Error reading metrics: {e}")
             
     return render_template('evaluate.html', metrics=metrics)
+
+
+@main_bp.route('/tajwid')
+def tajwid():
+    """Static page: Panduan Tajwid"""
+    from .utils import load_kamus
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    return render_template('tajwid.html', kamus=kamus)
 
 
 @main_bp.route('/api/dataset-summary')
