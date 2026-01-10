@@ -260,10 +260,27 @@ class ModelHandler:
             TrainingProgress.push_log(f"🔍 Extracting features: {os.path.basename(file_path)}")
             start = time.time()
             y, sr = librosa.load(file_path, sr=22050)
+            if y is None or len(y) == 0:
+                TrainingProgress.push_log(f"⚠️ Berkas audio kosong atau tidak terbaca: {os.path.basename(file_path)}")
+                return None
+
             y, _ = librosa.effects.trim(y, top_db=20)
-            mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40)  # Increased feature dimensions
+            if len(y) == 0:
+                # If trim removed everything, try without trim or with lower threshold
+                TrainingProgress.push_log(f"⚠️ Audio terlalu sunyi (kosong setelah trim): {os.path.basename(file_path)}")
+                return None
+
+            mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40)
+            if mfccs.size == 0:
+                return None
+                
             mfcc_mean = np.mean(mfccs, axis=1)
             mfcc_std = np.std(mfccs, axis=1)
+            
+            # Check for NaNs
+            if np.isnan(mfcc_mean).any() or np.isnan(mfcc_std).any():
+                return None
+
             dur = time.time() - start
             if dur > 1.0:
                 TrainingProgress.push_log(f"⏱️ Feature extraction took {dur:.2f}s for {os.path.basename(file_path)}")
@@ -638,11 +655,19 @@ def train_model_task(dataset_path, config, app_obj=None):
             if processed_count % 10 == 0:
                 TrainingProgress.push_log(f"Ekstraksi: {processed_count}/{total_files} berkas selesai.")
 
-        TrainingProgress.push_log(f"✅ Ekstraksi selesai. Berhasil mengambil {len(X_raw)} fitur.")
-        
+        if not X_raw:
+            TrainingProgress.push_log("❌ Tidak ada fitur yang berhasil diekstraksi. Abort training.")
+            TrainingProgress._is_training = False
+            return
+
         X = np.array(X_raw)
         y = np.array(y_raw)
         
+        if X.ndim < 2 or X.shape[0] == 0:
+            TrainingProgress.push_log("❌ Data fitur tidak valid atau kosong. Abort training.")
+            TrainingProgress._is_training = False
+            return
+
         # Z-Score Normalization
         X_mean = np.mean(X, axis=0)
         X_std = np.std(X, axis=0) + 1e-8
