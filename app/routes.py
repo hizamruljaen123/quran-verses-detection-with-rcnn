@@ -194,11 +194,8 @@ def surah_detail(sura_id):
     # Get surah info from kamus
     surah_info = None
     if kamus:
-        # Search for surah with matching number
-        for s in kamus:
-            if int(s['number']) == sura_id:
-                surah_info = s
-                break
+        sura_key = str(sura_id).zfill(3)
+        surah_info = kamus.get(sura_key)
     
     conn = get_db_connection()
     verses = []
