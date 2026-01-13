@@ -139,95 +139,197 @@
 
         <!-- Tajwid Legend -->
         <div
-            class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700">
+            class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700">
             <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 class="text-slate-900 font-black flex items-center text-xs uppercase tracking-widest">
-                    <i class="bi bi-info-circle mr-3 text-primary text-lg"></i> Keterangan Tajwid Surah An-Naba'
+                <h3 class="text-slate-900 font-black flex items-center text-xs uppercase tracking-widest leading-none">
+                    <i class="bi bi-info-circle mr-3 text-primary text-lg"></i> Keterangan Tajwid {% if surah_info
+                    %}Surah {{ surah_info.name }}{% endif %}
                 </h3>
-                <a href="{{ url_for('main.tajwid') }}" class="text-primary font-black text-xs">Lihat Panduan Lengkap
-                    →</a>
             </div>
-            <div class="p-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <div class="p-6">
+                <!-- Legend Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Mad Tabii / Aridh -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#e53935] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Mad Tabii / Aridh</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#e53935] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Mad Tabii / Aridh</p>
+                        </div>
                     </div>
 
+                    <!-- Ghunnah -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#6d4c41] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Ghunnah</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#6d4c41] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Ghunnah</p>
+                        </div>
                     </div>
 
+                    <!-- AL Syamsiyah -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#fb8c00] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">AL Syamsiyah</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#fb8c00] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">AL Syamsiyah</p>
+                        </div>
                     </div>
 
+                    <!-- Mad Līn -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#fb8c00] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform opacity-80"></span>
-                        <span class="text-sm font-black text-slate-600">Mad Līn</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#fb8c00] opacity-60 mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Mad Līn</p>
+                        </div>
                     </div>
 
+                    <!-- Mad Iwad -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#ec4899] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Mad Iwad</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#ec4899] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Mad Iwad</p>
+                        </div>
                     </div>
 
+                    <!-- Qalqalah -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#00cccc] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Qalqalah</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#00cccc] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Qalqalah</p>
+                        </div>
                     </div>
 
+                    <!-- AL Qamariyah -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#1e88e5] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">AL Qamariyah</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#1e88e5] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">AL Qamariyah</p>
+                        </div>
                     </div>
 
+                    <!-- Wajib / Jaiz -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#8e24aa] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Wajib / Jaiz</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#8e24aa] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Wajib / Jaiz</p>
+                        </div>
                     </div>
 
+                    <!-- Izhar -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#b8860b] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Izhar</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#b8860b] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Izhar</p>
+                        </div>
                     </div>
 
+                    <!-- Ikhfa -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#1b5e20] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Ikhfa</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#1b5e20] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Ikhfa</p>
+                        </div>
                     </div>
 
+                    <!-- Mad Badal -->
                     <div
-                        class="flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md group">
-                        <span
-                            class="w-8 h-8 bg-[#00bcd4] mr-4 rounded-xl shadow-sm border border-black/5 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-sm font-black text-slate-600">Mad Badal</span>
+                        class="group flex items-center p-3 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-white hover:border-primary/20 hover:shadow-md transition-all duration-300">
+                        <div
+                            class="w-1.5 h-10 rounded-full bg-[#00bcd4] mr-3 group-hover:scale-y-110 transition-transform">
+                        </div>
+                        <div class="min-w-0">
+                            <p
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5 leading-none">
+                                Hukum</p>
+                            <p class="text-[12px] font-bold text-slate-700 leading-tight">Mad Badal</p>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Footer Link -->
+                <div class="mt-8 pt-6 border-t border-slate-50">
+                    <a href="{{ url_for('main.tajwid') }}"
+                        class="group flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10 hover:bg-primary transition-all duration-300 group-link">
+                        <div class="flex items-center">
+                            <div
+                                class="w-10 h-10 bg-white rounded-xl flex items-center justify-center mr-4 shadow-sm group-hover:bg-white/20">
+                                <i
+                                    class="bi bi-journal-check text-primary text-xl group-hover:text-white transition-colors"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-slate-800 group-hover:text-white transition-colors">
+                                    Panduan Lengkap</h4>
+                                <p
+                                    class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-white/80 transition-colors">
+                                    Pelajari aturan tajwid</p>
+                            </div>
+                        </div>
+                        <i
+                            class="bi bi-arrow-right text-primary group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+                    </a>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
