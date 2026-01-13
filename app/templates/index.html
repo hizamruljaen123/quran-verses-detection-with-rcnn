@@ -23,7 +23,9 @@
                     <div
                         class="flex items-center px-5 py-2.5 bg-white/10 rounded-full border border-white/5 backdrop-blur-sm">
                         <i class="bi bi-check-circle-fill text-primary mr-3"></i>
-                        <span class="text-sm font-bold">{% if dataset_summary %}{{ dataset_summary.total_classes }} classes across {{ dataset_summary.total_surahs }} surah(s){% else %}Dataset summary unavailable{% endif %}</span>
+                        <span class="text-sm font-bold">{% if dataset_summary %}{{ dataset_summary.total_classes }}
+                            classes across {{ dataset_summary.total_surahs }} surah(s){% else %}Dataset summary
+                            unavailable{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -54,7 +56,7 @@
 
                     <div id="fileInfo"
                         class="hidden w-full max-w-sm bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center">
                                 <i class="bi bi-file-earmark-music text-2xl text-primary mr-4"></i>
                                 <span class="font-bold text-dark text-sm truncate max-w-[180px]"
@@ -65,6 +67,7 @@
                                 <i class="bi bi-x-circle text-lg"></i>
                             </button>
                         </div>
+                        <audio id="audioPreview" controls class="w-full h-10 rounded-lg bg-slate-50"></audio>
                     </div>
 
                     <button type="submit"
@@ -87,7 +90,8 @@
                     <i class="bi bi-activity text-white text-xl"></i>
                 </div>
                 <h5 class="text-xl font-bold mb-3">Model Status</h5>
-                <p class="text-emerald-100 text-sm leading-relaxed">RCNN Custom Algorithm saat ini aktif dan siap menerima data
+                <p class="text-emerald-100 text-sm leading-relaxed">RCNN Custom Algorithm saat ini aktif dan siap
+                    menerima data
                     input suara secara real-time.</p>
             </div>
             <div class="absolute -bottom-6 -right-6 opacity-20 rotate-[-15deg]">
@@ -99,7 +103,10 @@
         <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-4 border-l-primary">
             <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Dataset Quran</h6>
             {% if dataset_summary %}
-            <p class="text-slate-600 text-sm leading-relaxed font-medium">Terdeteksi <strong>{{ dataset_summary.total_classes }}</strong> kelas di <strong>{{ dataset_summary.total_surahs }}</strong> surah, total <strong>{{ dataset_summary.total_samples }}</strong> sampel. Klik bagian Training untuk melihat detail per-surah.</p>
+            <p class="text-slate-600 text-sm leading-relaxed font-medium">Terdeteksi <strong>{{
+                    dataset_summary.total_classes }}</strong> kelas di <strong>{{ dataset_summary.total_surahs
+                    }}</strong> surah, total <strong>{{ dataset_summary.total_samples }}</strong> sampel. Klik bagian
+                Training untuk melihat detail per-surah.</p>
 
             <div class="mt-6">
                 <h6 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Surah Tersedia</h6>
@@ -116,7 +123,8 @@
                 </div>
             </div>
             {% else %}
-            <p class="text-slate-600 text-sm leading-relaxed font-medium">Dataset tidak tersedia atau belum terindeks.</p>
+            <p class="text-slate-600 text-sm leading-relaxed font-medium">Dataset tidak tersedia atau belum terindeks.
+            </p>
             {% endif %}
         </div>
 
@@ -145,19 +153,28 @@
     const fileInfo = document.getElementById('fileInfo');
     const fileName = document.getElementById('fileName');
     const removeFile = document.getElementById('removeFile');
+    const audioPreview = document.getElementById('audioPreview');
 
     dropZone.onclick = () => fileInput.click();
 
     fileInput.onchange = (e) => {
         if (e.target.files.length > 0) {
-            fileName.innerText = e.target.files[0].name;
+            const file = e.target.files[0];
+            fileName.innerText = file.name;
             fileInfo.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                audioPreview.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
         }
     };
 
     removeFile.onclick = (e) => {
         e.stopPropagation();
         fileInput.value = '';
+        audioPreview.src = '';
         fileInfo.classList.add('hidden');
     };
 </script>
