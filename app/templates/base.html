@@ -64,6 +64,11 @@
                 <i class="bi bi-cpu text-xl mr-3"></i>
                 <span class="font-semibold">Model Training</span>
             </a>
+            <a href="{{ url_for('main.quran_list') }}"
+                class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {% if request.endpoint == 'main.quran_list' or request.endpoint == 'main.surah_detail' %}bg-primary text-white shadow-lg shadow-emerald-500/20{% else %}text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1{% endif %}">
+                <i class="bi bi-book-half text-xl mr-3"></i>
+                <span class="font-semibold">Al-Quran</span>
+            </a>
             <a href="{{ url_for('main.evaluate') }}"
                 class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {% if request.endpoint == 'main.evaluate' %}bg-primary text-white shadow-lg shadow-emerald-500/20{% else %}text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1{% endif %}">
                 <i class="bi bi-bar-chart text-xl mr-3"></i>

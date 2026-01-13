@@ -10,7 +10,7 @@ class Config:
 
     DB_HOST = '127.0.0.1'
     DB_USER = 'root'
-    DB_PASS = ''
+    DB_PASS = 'Komputer123@@'
     DB_NAME = 'quran_db'    
     MODEL_DIR = os.path.join(BASE_DIR, 'models')
     MODEL_PATH = os.path.join(MODEL_DIR, 'audio_model.pkl')

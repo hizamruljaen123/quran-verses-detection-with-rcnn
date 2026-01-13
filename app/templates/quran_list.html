@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-10">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-4xl font-extrabold text-dark tracking-tight mb-2">Daftar Surah Al-Quran</h1>
+            <p class="text-slate-500 font-medium text-lg">Jelajahi ayat-ayat suci Al-Quran lengkap dengan terjemahan.
+            </p>
+        </div>
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex gap-2">
+            <div class="flex items-center px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm">
+                <i class="bi bi-book mr-2"></i> 114 Surah
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Total Ayat</p>
+            <h3 class="text-2xl font-black text-dark">6.236</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Bahasa</p>
+            <h3 class="text-2xl font-black text-dark">Indonesia</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Data Source</p>
+            <h3 class="text-2xl font-black text-dark text-primary">Verified</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Search</p>
+            <div class="relative">
+                <input type="text" id="surahSearch"
+                    class="w-full bg-slate-50 border-none rounded-xl py-1 px-4 text-xs font-bold"
+                    placeholder="Cari surah...">
+                <i class="bi bi-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Surah Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="surahGrid">
+        {% if kamus %}
+        {% for s in kamus.values()|sort(attribute='number') %}
+        <a href="{{ url_for('main.surah_detail', sura_id=s.number|int) }}"
+            class="surah-card group bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+
+            <div
+                class="absolute -top-4 -right-4 w-16 h-16 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-500">
+            </div>
+
+            <div class="relative z-10 flex items-center mb-4">
+                <div
+                    class="w-10 h-10 bg-slate-50 text-slate-400 font-black rounded-xl border border-slate-100 flex items-center justify-center text-xs group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-colors">
+                    {{ s.number|int }}
+                </div>
+                <div
+                    class="ml-auto w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-4 transition-all duration-300">
+                    <i class="bi bi-arrow-right-short text-primary text-xl"></i>
+                </div>
+            </div>
+
+            <div class="relative z-10">
+                <h3 class="text-xl font-black text-dark group-hover:text-primary transition-colors mb-1 surah-name">{{
+                    s.name }}</h3>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">{{ s.verses }} AYAT</p>
+            </div>
+
+            <!-- Arabic Decoration -->
+            <div
+                class="absolute bottom-4 right-4 text-slate-50 font-arabic text-4xl select-none opacity-50 group-hover:text-primary/10 transition-colors">
+                {{ s.name }}
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="col-span-full py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+            <i class="bi bi-search text-6xl text-slate-200 mb-6 block"></i>
+            <h4 class="text-xl font-bold text-slate-400">Data surah tidak ditemukan</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.getElementById('surahSearch').addEventListener('input', function (e) {
+        const term = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.surah-card');
+
+        cards.forEach(card => {
+            const name = card.querySelector('.surah-name').innerText.toLowerCase();
+            if (name.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

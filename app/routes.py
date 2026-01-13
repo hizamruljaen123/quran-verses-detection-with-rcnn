@@ -177,6 +177,49 @@ def tajwid():
     return render_template('tajwid.html', kamus=kamus)
 
 
+@main_bp.route('/quran')
+def quran_list():
+    """Page: List of all Surahs"""
+    from .utils import load_kamus
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    return render_template('quran_list.html', kamus=kamus)
+
+
+@main_bp.route('/surah/<int:sura_id>')
+def surah_detail(sura_id):
+    """Page: Detail of a Surah with all its verses"""
+    from .utils import load_kamus
+    kamus = load_kamus(current_app.config.get('KAMUS_PATH'))
+    
+    # Get surah info from kamus
+    surah_info = None
+    if kamus:
+        # Search for surah with matching number
+        for s in kamus:
+            if int(s['number']) == sura_id:
+                surah_info = s
+                break
+    
+    conn = get_db_connection()
+    verses = []
+    if conn:
+        try:
+            cursor = conn.cursor(dictionary=True)
+            query = "SELECT ayahText, indoText, readText, verseID FROM quran_id WHERE suraId = %s ORDER BY verseID ASC"
+            cursor.execute(query, (sura_id,))
+            verses = cursor.fetchall()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"DB Error: {e}")
+            
+    return render_template('surah_detail.html', 
+                           surah_id=sura_id, 
+                           surah_info=surah_info, 
+                           verses=verses,
+                           kamus=kamus)
+
+
 @main_bp.route('/api/dataset-summary')
 def api_dataset_summary():
     from .utils import load_kamus, summarize_dataset

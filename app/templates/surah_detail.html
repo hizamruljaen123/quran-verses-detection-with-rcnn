@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Main Content: Verses -->
+    <div class="lg:col-span-8 space-y-8">
+        <!-- Header Surah -->
+        <div class="bg-dark rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+            <div class="absolute top-0 right-0 opacity-10 rotate-12 -mr-16 -mt-16 scale-150">
+                <i class="bi bi-book-half text-[15rem]"></i>
+            </div>
+
+            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-4 mb-4">
+                        <a href="{{ url_for('main.quran_list') }}"
+                            class="w-10 h-10 bg-white/10 hover:bg-primary rounded-xl flex items-center justify-center transition-all group">
+                            <i class="bi bi-arrow-left text-white group-hover:-translate-x-1 transition-transform"></i>
+                        </a>
+                        <span
+                            class="px-4 py-1.5 bg-primary rounded-full text-[10px] font-black uppercase tracking-widest">Surah
+                            Ke-{{ surah_id }}</span>
+                    </div>
+                    <h1 class="text-5xl font-black mb-2 uppercase tracking-tighter">{% if surah_info %}{{
+                        surah_info.name }}{% else %}Surah {{ surah_id }}{% endif %}</h1>
+                    <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">
+                        {% if surah_info %}{{ surah_info.verses }} Ayat{% endif %} • Terjemahan Bahasa Indonesia
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <h2 class="font-arabic text-6xl opacity-20">{% if surah_info %}{{ surah_info.name }}{% endif %}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bismillah (except for Surah 9 or if it's Fatihah) -->
+        {% if surah_id != 9 and surah_id != 1 %}
+        <div class="text-center py-12">
+            <h2 class="font-arabic text-4xl text-slate-800 leading-[1.8]">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</h2>
+        </div>
+        {% endif %}
+
+        <!-- Verses List -->
+        <div class="space-y-6">
+            {% if verses %}
+            {% for verse in verses %}
+            <div
+                class="group bg-white rounded-[2rem] p-8 md:p-10 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-100 group-hover:bg-primary transition-colors">
+                </div>
+
+                <div class="flex flex-col space-y-10">
+                    <!-- Ayah Header: Number -->
+                    <div class="flex items-center justify-between">
+                        <div
+                            class="w-12 h-12 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center font-black text-slate-400 text-sm group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
+                            {{ verse.verseID }}
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-primary transition-colors flex items-center justify-center">
+                                <i class="bi bi-share text-lg"></i>
+                            </button>
+                            <button
+                                class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-primary transition-colors flex items-center justify-center">
+                                <i class="bi bi-bookmark text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ayah Text (Arabic) -->
+                    <div class="text-right">
+                        <h2 class="font-arabic text-4xl md:text-5xl text-dark leading-[2.2] select-none"
+                            style="direction: rtl;">
+                            {{ verse.ayahText|safe }}
+                        </h2>
+                    </div>
+
+                    <!-- Transliteration & Translation -->
+                    <div class="space-y-6">
+                        <div class="inline-block relative">
+                            <p class="text-primary text-lg font-bold italic tracking-wide">" {{ verse.readText }} "</p>
+                            <div
+                                class="absolute -top-3 left-0 px-2 bg-emerald-50 text-primary text-[8px] font-black rounded uppercase py-0.5">
+                                Transliterasi</div>
+                        </div>
+
+                        <p class="text-slate-600 text-lg leading-relaxed font-medium">
+                            {{ verse.indoText }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+                <i class="bi bi-emoji-frown text-6xl text-slate-200 mb-6 block"></i>
+                <h4 class="text-xl font-bold text-slate-400">Data ayat belum tersedia untuk surah ini.</h4>
+                <p class="text-slate-400 mt-2">Pastikan database `quran_id` telah terisi dengan benar.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar: Surah Navigation -->
+    <div class="lg:col-span-4 space-y-8">
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm sticky top-8">
+            <h3 class="text-xl font-black text-dark mb-6 flex items-center">
+                <i class="bi bi-list-stars text-primary mr-3 text-2xl"></i> Navigasi Surah
+            </h3>
+
+            <div class="relative mb-6">
+                <input type="text" id="navSearch"
+                    class="w-full bg-slate-50 border-none rounded-xl py-3 px-10 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                    placeholder="Cari surah lain...">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            </div>
+
+            <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                {% if kamus %}
+                {% for s in kamus.values()|sort(attribute='number') %}
+                <a href="{{ url_for('main.surah_detail', sura_id=s.number|int) }}"
+                    class="nav-surah flex items-center p-3 rounded-2xl border {% if surah_id == s.number|int %}bg-primary/5 border-primary/20 text-primary{% else %}bg-slate-50 border-transparent text-slate-600 hover:bg-white hover:border-slate-200{% endif %} transition-all group">
+                    <span
+                        class="w-8 h-8 rounded-lg {% if surah_id == s.number|int %}bg-primary text-white{% else %}bg-slate-200 text-slate-500 group-hover:bg-slate-300{% endif %} flex items-center justify-center text-[10px] font-black mr-4 transition-colors">
+                        {{ s.number|int }}
+                    </span>
+                    <div class="flex-grow">
+                        <p class="text-sm font-black surah-nav-name">{{ s.name }}</p>
+                        <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">{{ s.verses }} Ayat</p>
+                    </div>
+                    <i class="bi bi-chevron-right text-xs opacity-0 group-hover:opacity-100 transition-all"></i>
+                </a>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+</style>
+
+<script>
+    document.getElementById('navSearch').addEventListener('input', function (e) {
+        const term = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.nav-surah');
+
+        items.forEach(item => {
+            const name = item.querySelector('.surah-nav-name').innerText.toLowerCase();
+            if (name.includes(term)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}
